@@ -456,7 +456,7 @@ def render_combo(combo, rank):
 # === HEADER / ヘッダー ===
 st.markdown("""
 <div class="app-header">
-    <p class="app-sub">スミス東中野 × TTC</p>
+    <p class="app-sub">サミット × TTC</p>
     <h1 class="app-title">いい食事取ろう！🍱</h1>
 </div>
 """, unsafe_allow_html=True)
