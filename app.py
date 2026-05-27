@@ -5,14 +5,14 @@ from itertools import combinations
 import gspread
 from google.oauth2.service_account import Credentials
 
-# === PAGE CONFIG ===
+# === ページ設定 / PAGE CONFIG ===
 st.set_page_config(
     page_title="いい食事取ろう！",
     layout="centered",
     initial_sidebar_state="collapsed"
 )
 
-# === GOOGLE SHEETS CONNECTION ===
+# === GOOGLEスプレッドシート接続 / GOOGLE SHEETS CONNECTION ===
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive",
@@ -37,18 +37,18 @@ def load_data():
     df["値段"]       = pd.to_numeric(df["値段"],       errors="coerce")
     return df
 
-# === LOAD DATA / データ読み込み ===
+# === データ読み込み / LOAD DATA ===
 df = load_data()
 
 KARBO_CATS = ["パン", "おにぎり", "ご飯"]
 BENTO_CATS = ["弁当"]
 
-def get_grup(cat):
-    if cat in KARBO_CATS: return "karbo"
-    if cat in BENTO_CATS: return "bento"
-    return "lauk"
+def get_group(cat):
+    if cat in KARBO_CATS: return "karbo"    # 主食
+    if cat in BENTO_CATS: return "bento"    # 弁当
+    return "okazu"                          # おかず
 
-df["grup"] = df["カテゴリ"].apply(get_grup)
+df["group"] = df["カテゴリ"].apply(get_group)
 
 # === GLOBAL CSS ===
 st.markdown("""
@@ -300,7 +300,8 @@ div[data-testid="stTabs"] button {
 </style>
 """, unsafe_allow_html=True)
 
-# === HELPER FUNCTIONS / ヘルパー関数 ===
+
+# === ヘルパー関数 / Helper Functions ===
 def pc_badge(score):
     if score >= 5.0: return "pc-hi",  f"P/C {score:.1f}"
     elif score >= 2.0: return "pc-mid", f"P/C {score:.1f}"
@@ -330,15 +331,14 @@ def render_rank_list(data, max_n=5):
         )
         st.markdown(html, unsafe_allow_html=True)
 
-def find_best_combos(df_lauk, df_karbo, df_bento, budget, n_lauk, n_karbo, include_bento, top_n=3):
-    """Find top combos by max total protein within budget.
-    予算内でタンパク質合計が最大になる組み合わせを探す。"""
+def find_best_combos(df_okazu, df_karbo, df_bento, budget, n_okazu, n_karbo, include_bento, top_n=3):
+    """予算内でタンパク質合計が最大になる組み合わせを探す。"""
     results = []
 
-    # Get best side dish (おかず) candidates
-    candidates = df_lauk[df_lauk["値段"] <= budget].sort_values("p/c_score", ascending=False).head(15)
+    # おかず候補リストの取得
+    candidates = df_okazu[df_okazu["値段"] <= budget].sort_values("p/c_score", ascending=False).head(15)
 
-    def lauk_combos(remaining, n):
+    def okazu_combos(remaining, n):
         eligible = candidates[candidates["値段"] <= remaining]
         if len(eligible) < n:
             combos = [list(eligible.itertuples())]
@@ -351,7 +351,7 @@ def find_best_combos(df_lauk, df_karbo, df_bento, budget, n_lauk, n_karbo, inclu
         return sum(r["タンパク"] for r in items), sum(r["値段"] for r in items)
 
     if include_bento:
-        # Bento mode: single item, already a complete meal / 弁当は単品で完結
+        # 弁当モード（単品）
         for _, b in df_bento[df_bento["値段"] <= budget].iterrows():
             results.append({
                 "items": [{"name": b["商品名"], "price": b["値段"], "protein": b["タンパク"], "type": "bento"}],
@@ -359,7 +359,7 @@ def find_best_combos(df_lauk, df_karbo, df_bento, budget, n_lauk, n_karbo, inclu
                 "total_price": b["値段"]
             })
     else:
-        # Staple + Side dish mode / 主食＋おかずの組み合わせ
+        # 主食＋おかずの組み合わせ
         karbo_pool = df_karbo[df_karbo["値段"] <= budget].sort_values("p/c_score", ascending=False).head(10) if n_karbo > 0 else pd.DataFrame()
         
         if n_karbo == 0:
@@ -373,10 +373,10 @@ def find_best_combos(df_lauk, df_karbo, df_bento, budget, n_lauk, n_karbo, inclu
                 continue
             remaining = budget - k_cost
 
-            if n_lauk == 0:
+            if n_okazu == 0:
                 combo_results = [{"items": [], "protein": 0, "price": 0}]
             else:
-                lc = lauk_combos(remaining, n_lauk)
+                lc = okazu_combos(remaining, n_okazu)
                 combo_results = []
                 for lset in lc:
                     tp = sum(r["タンパク"] for r in lset)
@@ -391,13 +391,13 @@ def find_best_combos(df_lauk, df_karbo, df_bento, budget, n_lauk, n_karbo, inclu
                                       "protein": k_item["タンパク"], "type": "karbo"})
                 for r in cr["items"]:
                     item_list.append({"name": r["商品名"], "price": r["値段"],
-                                      "protein": r["タンパク"], "type": "lauk"})
+                                      "protein": r["タンパク"], "type": "okazu"})
                 tp = (k_item["タンパク"] if k_item is not None else 0) + cr["protein"]
                 tc = k_cost + cr["price"]
                 results.append({"items": item_list, "total_protein": tp, "total_price": tc})
 
     results.sort(key=lambda x: x["total_protein"], reverse=True)
-    # Deduplicate combos by item name set / 重複する組み合わせを除去
+    # 組み合わせの重複を除外
     seen = []
     unique = []
     for r in results:
@@ -409,11 +409,10 @@ def find_best_combos(df_lauk, df_karbo, df_bento, budget, n_lauk, n_karbo, inclu
             break
     return unique
 
-TYPE_ICON = {"lauk": "", "karbo": "", "bento": ""}
+TYPE_ICON = {"okazu": "", "karbo": "", "bento": ""}
 
 def esc(text):
-    """Escape HTML special characters in product names.
-    商品名のHTMLエスケープ処理。"""
+    """商品名のHTMLエスケープ。"""
     return (str(text)
             .replace("&", "&amp;")
             .replace("<", "&lt;")
@@ -463,7 +462,7 @@ st.markdown("""
 tab1, tab2, tab3 = st.tabs(["自動おすすめ", "自分で選ぶ", "データ追加"])
 
 # ─────────────────────────────────────
-# TAB 1: AUTO COMBO / 自動おすすめ
+# タブ1: 自動おすすめ
 # ─────────────────────────────────────
 with tab1:
     st.markdown("<p class='section-title'>予算と構成を設定</p>", unsafe_allow_html=True)
@@ -480,25 +479,25 @@ with tab1:
     col1, col2 = st.columns(2)
     if meal_type == "おかず + 主食":
         with col1:
-            n_lauk_auto = st.selectbox("おかず品数", [1, 2, 3], index=1, key="nl_auto")
+            n_okazu_auto = st.selectbox("おかず品数", [1, 2, 3], index=1, key="nl_auto")
         with col2:
             n_karbo_auto = st.selectbox("主食品数", [1, 2], index=0, key="nk_auto")
         include_bento = False
     elif meal_type == "弁当のみ":
-        n_lauk_auto, n_karbo_auto = 0, 0
+        n_okazu_auto, n_karbo_auto = 0, 0
         include_bento = True
     else:
         with col1:
-            n_lauk_auto = st.selectbox("おかず品数", [1, 2, 3], index=1, key="nl_auto2")
+            n_okazu_auto = st.selectbox("おかず品数", [1, 2, 3], index=1, key="nl_auto2")
         n_karbo_auto = 0
         include_bento = False
 
-    df_lauk  = df[df["grup"] == "lauk"]
-    df_karbo = df[df["grup"] == "karbo"]
-    df_bento = df[df["grup"] == "bento"]
+    df_okazu  = df[df["group"] == "okazu"]
+    df_karbo = df[df["group"] == "karbo"]
+    df_bento = df[df["group"] == "bento"]
 
-    combos = find_best_combos(df_lauk, df_karbo, df_bento, budget_auto,
-                               n_lauk_auto, n_karbo_auto, include_bento, top_n=3)
+    combos = find_best_combos(df_okazu, df_karbo, df_bento, budget_auto,
+                               n_okazu_auto, n_karbo_auto, include_bento, top_n=3)
 
     st.markdown("<hr class='divider'>", unsafe_allow_html=True)
     st.markdown("<p class='section-title'>おすすめ組み合わせ TOP 3</p>", unsafe_allow_html=True)
@@ -510,7 +509,7 @@ with tab1:
             render_combo(combo, i)
 
 # ─────────────────────────────────────
-# TAB 2: MANUAL BROWSE / 自分で選ぶ
+# タブ2: 自分で選ぶ
 # ─────────────────────────────────────
 with tab2:
     st.markdown("<p class='section-title'>フィルター</p>", unsafe_allow_html=True)
@@ -530,7 +529,7 @@ with tab2:
 
     df_f = df[df["値段"] <= budget_man]
 
-    # STAT CARDS / 統計カード
+    # 統計カード
     st.markdown("<hr class='divider'>", unsafe_allow_html=True)
     count     = len(df_f)
     avg_prot  = f"{df_f['タンパク'].mean():.1f}g" if not df_f.empty else "ー"
@@ -552,37 +551,37 @@ with tab2:
     </div>
     """, unsafe_allow_html=True)
 
-    # SIDE DISH section / おかずセクション
-    df_lauk_f = sorted_df(df_f[df_f["grup"] == "lauk"])
+    # おかずセクション
+    df_okazu_f = sorted_df(df_f[df_f["group"] == "okazu"])
     st.markdown("""
     <div class="group-label">
-        <span class="group-badge badge-lauk">おかず（Lauk）</span>
+        <span class="group-badge badge-lauk">おかず</span>
     </div>
     """, unsafe_allow_html=True)
-    render_rank_list(df_lauk_f, max_n=5)
+    render_rank_list(df_okazu_f, max_n=5)
 
-    # STAPLE section / 主食セクション
-    df_karbo_f = sorted_df(df_f[df_f["grup"] == "karbo"])
+    # 主食セクション
+    df_karbo_f = sorted_df(df_f[df_f["group"] == "karbo"])
     st.markdown("""
     <div class="group-label">
-        <span class="group-badge badge-karbo">主食（Karbo）</span>
+        <span class="group-badge badge-karbo">主食</span>
     </div>
     """, unsafe_allow_html=True)
     render_rank_list(df_karbo_f, max_n=5)
 
-    # BENTO section / 弁当セクション
-    df_bento_f = sorted_df(df_f[df_f["grup"] == "bento"])
+    # 弁当セクション
+    df_bento_f = sorted_df(df_f[df_f["group"] == "bento"])
     st.markdown("""
     <div class="group-label">
-        <span class="group-badge badge-bento">弁当（単品OK）</span>
+        <span class="group-badge badge-bento">弁当</span>
     </div>
     """, unsafe_allow_html=True)
     render_rank_list(df_bento_f, max_n=5)
 
-    # BAR CHART / バーチャート
+    # バーチャート（おかずのみ）
     st.markdown("<p class='section-title'>コスパ上位 — おかずのみ (g/¥100)</p>", unsafe_allow_html=True)
-    if not df_lauk_f.empty:
-        bar_df = df_lauk_f.head(7)[["商品名","p/c_score"]].copy()
+    if not df_okazu_f.empty:
+        bar_df = df_okazu_f.head(7)[["商品名","p/c_score"]].copy()
         bar_df.columns = ["商品名","score"]
         bar_df["level"] = bar_df["score"].apply(
             lambda s: "High" if s >= 5.0 else ("Mid" if s >= 2.0 else "Low"))
@@ -608,7 +607,7 @@ with tab2:
         st.altair_chart(bar, use_container_width=True)
 
 # ─────────────────────────────────────
-# TAB 3: DATA INPUT / データ追加
+# タブ3: データ追加
 # ─────────────────────────────────────
 with tab3:
     st.markdown("<p class='section-title'>新しい商品を追加</p>", unsafe_allow_html=True)
@@ -643,13 +642,13 @@ with tab3:
         submitted = st.form_submit_button("追加する", use_container_width=True)
 
     if submitted:
-        # Input validation / 入力チェック
+        # 入力チェック / Input validation
         if not new_name.strip():
             st.error("商品名を入力してください。")
         elif new_price <= 0:
             st.error("値段は0より大きくしてください。")
         else:
-            # Compute P/C score and level / P/Cスコアとレベルを計算
+            # P/Cスコアとレベルを計算 / Compute P/C score and level 
             pc = round((new_protein / new_price) * 100, 2)
             if pc >= 5.0:
                 level = "high"
@@ -672,7 +671,7 @@ with tab3:
                 "pc_level": level
             }
 
-            # Append new row to Google Sheets / 新しいデータをスプレッドシートに追加
+            # スプレッドシートに新しいデータを追加 / Append new row to Google Sheets
             ws = get_worksheet()
             ws.append_row([
                 new_row["Timestamp"],
@@ -689,7 +688,7 @@ with tab3:
             st.success(f"「{new_name.strip()}」を追加しました！ P/Cスコア: {pc}")
             st.rerun()
 
-    # ── Recently added items / 最近追加されたデータ ──
+    # ── 最近追加されたデータ / Recently added items ──
     st.markdown("<p class='section-title'>最近追加されたデータ</p>", unsafe_allow_html=True)
 
     df_show = df.tail(5).iloc[::-1].reset_index(drop=True)
@@ -712,7 +711,7 @@ with tab3:
             )
             st.markdown(html, unsafe_allow_html=True)
 
-    # ── Delete last entry (undo) / 最後のデータを削除 ──
+    # ── 最後のデータを削除 (undo) / Delete last entry ──
     st.markdown("<hr class='divider'>", unsafe_allow_html=True)
     st.markdown("<p class='section-title'>最後のデータを削除</p>", unsafe_allow_html=True)
     st.markdown("""
