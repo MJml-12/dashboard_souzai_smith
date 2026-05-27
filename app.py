@@ -8,7 +8,6 @@ from google.oauth2.service_account import Credentials
 # === PAGE CONFIG ===
 st.set_page_config(
     page_title="いい食事取ろう！",
-    page_icon="🍱",
     layout="centered",
     initial_sidebar_state="collapsed"
 )
@@ -54,10 +53,9 @@ df["grup"] = df["カテゴリ"].apply(get_grup)
 # === GLOBAL CSS ===
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
 
 html, body, [class*="css"] {
-    font-family: 'DM Sans', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 #MainMenu, footer, header { visibility: hidden; }
@@ -70,19 +68,19 @@ html, body, [class*="css"] {
 .app-header {
     margin-bottom: 1.2rem;
     padding-bottom: 0.8rem;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+    border-bottom: 1px solid #D5D3CC;
 }
 .app-title {
     font-size: 1.55rem;
     font-weight: 600;
-    color: #E2F5F1;
+    color: #2D3436;
     letter-spacing: -0.02em;
     line-height: 1.2;
     margin: 0 0 4px 0;
 }
 .app-sub {
     font-size: 0.75rem;
-    color: #64a89f;
+    color: #636E72;
     letter-spacing: 0.05em;
     text-transform: uppercase;
     margin: 0;
@@ -96,8 +94,8 @@ html, body, [class*="css"] {
     margin-bottom: 1rem;
 }
 .stat-card {
-    background: rgba(13, 148, 136, 0.08);
-    border: 1px solid rgba(13, 148, 136, 0.18);
+    background: #F8F7F4;
+    border: 1px solid #D5D3CC;
     border-radius: 12px;
     padding: 10px 8px 8px;
     text-align: center;
@@ -105,14 +103,14 @@ html, body, [class*="css"] {
 .stat-val {
     font-size: 1.2rem;
     font-weight: 600;
-    color: #5EEAD4;
+    color: #4A4A4A;
     line-height: 1.1;
     display: block;
-    font-family: 'DM Mono', monospace;
+    font-family: inherit;
 }
 .stat-lbl {
     font-size: 0.63rem;
-    color: #64a89f;
+    color: #636E72;
     margin-top: 3px;
     display: block;
     letter-spacing: 0.02em;
@@ -122,7 +120,7 @@ html, body, [class*="css"] {
 .section-title {
     font-size: 0.68rem;
     font-weight: 600;
-    color: #64a89f;
+    color: #636E72;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     margin: 1.2rem 0 0.5rem;
@@ -143,9 +141,9 @@ html, body, [class*="css"] {
     padding: 3px 9px;
     border-radius: 20px;
 }
-.badge-lauk  { background: rgba(13,148,136,0.2);  color: #5EEAD4; }
-.badge-karbo { background: rgba(245,158,11,0.2);  color: #F59E0B; }
-.badge-bento { background: rgba(168,85,247,0.2);  color: #C084FC; }
+.badge-lauk  { background: #E8E6E1;  color: #4A4A4A; }
+.badge-karbo { background: #F0E8D8;  color: #8B6914; }
+.badge-bento { background: #EDE8F0;  color: #6B4C7A; }
 
 /* RANK ITEMS */
 .rank-item {
@@ -153,29 +151,29 @@ html, body, [class*="css"] {
     align-items: center;
     gap: 10px;
     padding: 10px 12px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.06);
+    background: #FFFFFF;
+    border: 1px solid #E0DED8;
     border-radius: 12px;
     margin-bottom: 6px;
 }
-.rank-item:hover { background: rgba(13,148,136,0.07); }
+.rank-item:hover { background: #F0EFEA; }
 .rank-num {
-    font-family: 'DM Mono', monospace;
+    font-family: inherit;
     font-size: 0.75rem;
     font-weight: 500;
-    color: #64a89f;
+    color: #636E72;
     width: 18px;
     flex-shrink: 0;
     text-align: center;
 }
-.rank-num.gold   { color: #F59E0B; }
-.rank-num.silver { color: #94A3B8; }
+.rank-num.gold   { color: #8B6914; }
+.rank-num.silver { color: #95A5A6; }
 .rank-num.bronze { color: #92765A; }
 .rank-name {
     flex: 1;
     font-size: 0.85rem;
     font-weight: 500;
-    color: #E2F5F1;
+    color: #2D3436;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -190,28 +188,28 @@ html, body, [class*="css"] {
 .rank-protein {
     font-size: 0.85rem;
     font-weight: 600;
-    color: #5EEAD4;
-    font-family: 'DM Mono', monospace;
+    color: #4A4A4A;
+    font-family: inherit;
 }
 .rank-price {
     font-size: 0.68rem;
-    color: #64a89f;
+    color: #636E72;
 }
 .pc-badge {
     font-size: 0.6rem;
     font-weight: 600;
     padding: 2px 6px;
     border-radius: 20px;
-    font-family: 'DM Mono', monospace;
+    font-family: inherit;
 }
-.pc-hi  { background: rgba(13,148,136,0.25); color: #5EEAD4; }
-.pc-mid { background: rgba(245,158,11,0.2);  color: #F59E0B; }
-.pc-lo  { background: rgba(239,68,68,0.15);  color: #F87171; }
+.pc-hi  { background: #D5D0C8; color: #4A4A4A; }
+.pc-mid { background: #F0E8D8;  color: #8B6914; }
+.pc-lo  { background: #F0E0E0;  color: #8B3A3A; }
 
 /* COMBO CARD */
 .combo-card {
-    background: rgba(13,148,136,0.06);
-    border: 1px solid rgba(13,148,136,0.2);
+    background: #FAFAF8;
+    border: 1px solid #D5D3CC;
     border-radius: 16px;
     padding: 16px;
     margin-bottom: 10px;
@@ -220,7 +218,7 @@ html, body, [class*="css"] {
     font-size: 0.62rem;
     font-weight: 700;
     letter-spacing: 0.1em;
-    color: #64a89f;
+    color: #636E72;
     text-transform: uppercase;
     margin-bottom: 10px;
 }
@@ -239,15 +237,15 @@ html, body, [class*="css"] {
 .combo-name {
     flex: 1;
     font-size: 0.83rem;
-    color: #E2F5F1;
+    color: #2D3436;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 .combo-price-tag {
     font-size: 0.72rem;
-    color: #64a89f;
-    font-family: 'DM Mono', monospace;
+    color: #636E72;
+    font-family: inherit;
     flex-shrink: 0;
 }
 .combo-footer {
@@ -256,28 +254,28 @@ html, body, [class*="css"] {
     align-items: center;
     margin-top: 10px;
     padding-top: 10px;
-    border-top: 1px solid rgba(255,255,255,0.06);
+    border-top: 1px solid #E0DED8;
 }
 .combo-total-protein {
     font-size: 1.1rem;
     font-weight: 700;
-    color: #5EEAD4;
-    font-family: 'DM Mono', monospace;
+    color: #4A4A4A;
+    font-family: inherit;
 }
 .combo-total-price {
     font-size: 0.8rem;
-    color: #94A3B8;
-    font-family: 'DM Mono', monospace;
+    color: #95A5A6;
+    font-family: inherit;
 }
 .combo-change-tag {
     font-size: 0.65rem;
-    color: #64a89f;
+    color: #636E72;
 }
 
 /* DIVIDER */
 .divider {
     border: none;
-    border-top: 1px solid rgba(255,255,255,0.06);
+    border-top: 1px solid #E0DED8;
     margin: 0.8rem 0;
 }
 
@@ -304,9 +302,9 @@ div[data-testid="stTabs"] button {
 
 # === HELPER FUNCTIONS / ヘルパー関数 ===
 def pc_badge(score):
-    if score >= 5.0: return "pc-hi",  f"P/C {score:.1f} ✅"
-    elif score >= 2.0: return "pc-mid", f"P/C {score:.1f} 🔶"
-    else: return "pc-lo",  f"P/C {score:.1f} ❌"
+    if score >= 5.0: return "pc-hi",  f"P/C {score:.1f}"
+    elif score >= 2.0: return "pc-mid", f"P/C {score:.1f}"
+    else: return "pc-lo",  f"P/C {score:.1f}"
 
 RANK_ICONS = ["①","②","③","④","⑤"]
 RANK_CLS   = ["gold","silver","bronze","",""]
@@ -411,7 +409,7 @@ def find_best_combos(df_lauk, df_karbo, df_bento, budget, n_lauk, n_karbo, inclu
             break
     return unique
 
-TYPE_ICON = {"lauk": "🍗", "karbo": "🍞", "bento": "🍱"}
+TYPE_ICON = {"lauk": "", "karbo": "", "bento": ""}
 
 def esc(text):
     """Escape HTML special characters in product names.
@@ -424,7 +422,7 @@ def esc(text):
             .replace("'", "&#39;"))
 
 def render_combo(combo, rank):
-    rank_labels = ["🥇 Best Pick", "🥈 2nd Option", "🥉 3rd Option"]
+    rank_labels = ["Best Pick", "2nd Option", "3rd Option"]
     label = rank_labels[rank] if rank < 3 else f"#{rank+1}"
     rows_html = ""
     for item in combo["items"]:
@@ -457,12 +455,12 @@ def render_combo(combo, rank):
 st.markdown("""
 <div class="app-header">
     <p class="app-sub">サミット × TTC</p>
-    <h1 class="app-title">いい食事取ろう！🍱</h1>
+    <h1 class="app-title">いい食事取ろう！</h1>
 </div>
 """, unsafe_allow_html=True)
 
 # === TABS / タブ ===
-tab1, tab2, tab3 = st.tabs(["🤖 自動おすすめ", "🔍 自分で選ぶ", "➕ データ追加"])
+tab1, tab2, tab3 = st.tabs(["自動おすすめ", "自分で選ぶ", "データ追加"])
 
 # ─────────────────────────────────────
 # TAB 1: AUTO COMBO / 自動おすすめ
@@ -474,19 +472,19 @@ with tab1:
 
     meal_type = st.radio(
         "食事スタイル",
-        ["🍗 おかず + 🍞 主食", "🍱 弁当のみ", "🍗 おかずのみ"],
+        ["おかず + 主食", "弁当のみ", "おかずのみ"],
         horizontal=True,
         key="meal_type"
     )
 
     col1, col2 = st.columns(2)
-    if meal_type == "🍗 おかず + 🍞 主食":
+    if meal_type == "おかず + 主食":
         with col1:
             n_lauk_auto = st.selectbox("おかず品数", [1, 2, 3], index=1, key="nl_auto")
         with col2:
             n_karbo_auto = st.selectbox("主食品数", [1, 2], index=0, key="nk_auto")
         include_bento = False
-    elif meal_type == "🍱 弁当のみ":
+    elif meal_type == "弁当のみ":
         n_lauk_auto, n_karbo_auto = 0, 0
         include_bento = True
     else:
@@ -558,7 +556,7 @@ with tab2:
     df_lauk_f = sorted_df(df_f[df_f["grup"] == "lauk"])
     st.markdown("""
     <div class="group-label">
-        <span class="group-badge badge-lauk">🍗 おかず（Lauk）</span>
+        <span class="group-badge badge-lauk">おかず（Lauk）</span>
     </div>
     """, unsafe_allow_html=True)
     render_rank_list(df_lauk_f, max_n=5)
@@ -567,7 +565,7 @@ with tab2:
     df_karbo_f = sorted_df(df_f[df_f["grup"] == "karbo"])
     st.markdown("""
     <div class="group-label">
-        <span class="group-badge badge-karbo">🍞 主食（Karbo）</span>
+        <span class="group-badge badge-karbo">主食（Karbo）</span>
     </div>
     """, unsafe_allow_html=True)
     render_rank_list(df_karbo_f, max_n=5)
@@ -576,7 +574,7 @@ with tab2:
     df_bento_f = sorted_df(df_f[df_f["grup"] == "bento"])
     st.markdown("""
     <div class="group-label">
-        <span class="group-badge badge-bento">🍱 弁当（単品OK）</span>
+        <span class="group-badge badge-bento">弁当（単品OK）</span>
     </div>
     """, unsafe_allow_html=True)
     render_rank_list(df_bento_f, max_n=5)
@@ -593,17 +591,17 @@ with tab2:
             .mark_bar(cornerRadiusTopRight=6, cornerRadiusBottomRight=6)
             .encode(
                 y=alt.Y("商品名:N", sort="-x", title=None,
-                        axis=alt.Axis(labelFontSize=11, labelColor="#94A3B8")),
+                        axis=alt.Axis(labelFontSize=11, labelColor="#7F8C8D")),
                 x=alt.X("score:Q", title="g / ¥100",
-                        axis=alt.Axis(labelFontSize=10, labelColor="#64a89f")),
+                        axis=alt.Axis(labelFontSize=10, labelColor="#7F8C8D")),
                 color=alt.Color("level:N",
                     scale=alt.Scale(domain=["High","Mid","Low"],
-                                    range=["#0D9488","#F59E0B","#EF4444"]),
+                                    range=["#7D8E96","#B8A88A","#C4A4A4"]),
                     legend=None),
                 tooltip=["商品名", alt.Tooltip("score:Q", title="P/C", format=".2f")]
             )
             .properties(height=200)
-            .configure_view(strokeWidth=0, fill="#0F1923")
+            .configure_view(strokeWidth=0, fill="#F5F4F0")
             .configure_axis(grid=False, domain=False)
             .configure(background="#0F1923")
         )
@@ -642,7 +640,7 @@ with tab3:
             new_protein = st.number_input("タンパク (g)", min_value=0.0,
                                           max_value=100.0, value=10.0, step=0.1)
 
-        submitted = st.form_submit_button("✅ 追加する", use_container_width=True)
+        submitted = st.form_submit_button("追加する", use_container_width=True)
 
     if submitted:
         # Input validation / 入力チェック
@@ -716,13 +714,13 @@ with tab3:
 
     # ── Delete last entry (undo) / 最後のデータを削除 ──
     st.markdown("<hr class='divider'>", unsafe_allow_html=True)
-    st.markdown("<p class='section-title'>⚠️ 最後のデータを削除</p>", unsafe_allow_html=True)
+    st.markdown("<p class='section-title'>最後のデータを削除</p>", unsafe_allow_html=True)
     st.markdown("""
     <div style="font-size:0.75rem;color:#64a89f;margin-bottom:0.6rem;">
     Use only to undo a mistaken entry. This action cannot be undone. / 誤って追加したときだけ使用してください。この操作は元に戻せません。
     </div>
     """, unsafe_allow_html=True)
-    if st.button("🗑️ 最後の1件を削除", use_container_width=False):
+    if st.button("最後の1件を削除", use_container_width=False):
         ws = get_worksheet()
         last_row = len(ws.get_all_values())
         if last_row > 1:
