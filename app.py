@@ -673,7 +673,7 @@ with tab3:
 
             # スプレッドシートに新しいデータを追加 / Append new row to Google Sheets
             ws = get_worksheet()
-            ws.append_row([
+            ws.append_row(value_input_option="USER_ENTERED",values=[
                 new_row["Timestamp"],
                 new_row["販売タイプ"],
                 new_row["商品名"],
